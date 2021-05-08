@@ -3,10 +3,11 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import colors from "../constants/colors";
 import Home from "../screens/Home";
+import IncomeExpense from "../screens/IncomeExpense";
 
 const MainStack = createStackNavigator();
 const MainStackScreen = () => (
-  <MainStack.Navigator>
+  <MainStack.Navigator initialRouteName="IncomeExpense">
     <MainStack.Screen
       name="Home"
       component={Home}
@@ -21,6 +22,11 @@ const MainStackScreen = () => (
           fontWeight: "bold",
         },
       }}
+    />
+    <MainStack.Screen
+      name="IncomeExpense"
+      component={IncomeExpense}
+      options={{ headerShown: false }}
     />
   </MainStack.Navigator>
 );
