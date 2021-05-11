@@ -14,11 +14,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const Fab = () => {
+const Fab = ({ onOpen }) => {
   return (
-    <TouchableOpacity style={styles.fab}>
-      <MaterialIcons name="add" size={24} color={colors.white} />
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity onPress={() => onOpen()} style={styles.fab}>
+        <MaterialIcons name="add" size={24} color={colors.white} />
+      </TouchableOpacity>
+    </>
   );
 };
 

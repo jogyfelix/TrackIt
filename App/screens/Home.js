@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { View, StyleSheet, Text, StatusBar, Dimensions } from "react-native";
+import { Modalize } from "react-native-modalize";
+import { openDatabase } from "expo-sqlite";
 import colors from "../constants/colors";
 import Fab from "../components/fab";
+import IncomeExpense from "./IncomeExpense";
+import { getDetails } from "../data/dbFiles";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -46,9 +50,23 @@ const styles = StyleSheet.create({
 });
 
 const Home = () => {
+  const db = openDatabase("trackItDb");
+
+  useEffect(() => {
+    getDetails({ db })
+      .then(console.log)
+      .catch(function (error) {
+        console.log(
+          `There has been a problem with your fetch operation:  ${error.message}`
+        );
+      });
+  });
+
   const balance = "$3000";
   const income = "$7320";
   const expense = "$4500";
+
+  const modalizeRef = useRef(null);
 
   return (
     <View style={styles.parent}>
@@ -95,9 +113,13 @@ const Home = () => {
 
         {/* fab button */}
         <View style={styles.fabParent}>
-          <Fab />
+          <Fab onOpen={() => modalizeRef.current?.open()} />
         </View>
       </View>
+
+      <Modalize ref={modalizeRef}>
+        <IncomeExpense title="Add" />
+      </Modalize>
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,9 +6,14 @@ import {
   SafeAreaView,
   TouchableOpacity,
   TextInput,
+  Platform,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { openDatabase } from "expo-sqlite";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import colors from "../constants/colors";
+import { addDetails } from "../data/dbFiles";
+import { format } from "date-fns";
 
 const styles = StyleSheet.create({
   parent: {},
@@ -58,11 +63,40 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     borderRadius: 8,
+    flex: 1,
   },
+  dateParent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dateIcon: { marginRight: 16, paddingTop: 10 },
 });
 
-const IncomeExpense = () => {
-  const parent = "Add";
+const IncomeExpense = ({ title }) => {
+  // setting up title from parent
+  const parent = title;
+  const db = openDatabase("trackItDb");
+
+  const [date, setDate] = useState(format(new Date(), "MMMM do, yyyy"));
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const [show, setShow] = useState(false);
+
+  const showDate = () => {
+    setShow(true);
+  };
+
+  const onChange = (event, selectedDate) => {
+    const currentDate = format(selectedDate || date, "MMMM do, yyyy");
+    setShow(Platform.OS === "ios");
+    setDate(currentDate);
+  };
+
+  const addEntry = () => {
+    addDetails({ db }, date, description, parseInt(amount, 10), 0);
+  };
 
   return (
     //   main parent view
@@ -93,6 +127,8 @@ const IncomeExpense = () => {
         placeholderTextColor="gray"
         keyboardType="numeric"
         style={styles.input}
+        onChangeText={(text) => setAmount(text)}
+        value={amount}
       />
 
       {/* description text input */}
@@ -100,17 +136,45 @@ const IncomeExpense = () => {
         placeholder="Description"
         placeholderTextColor="gray"
         style={styles.input}
+        onChangeText={(text) => setDescription(text)}
+        value={description}
       />
 
       {/* date text input */}
-      <TextInput
-        placeholder="Date"
-        placeholderTextColor="gray"
-        style={styles.input}
-      />
+      <View style={styles.dateParent}>
+        <TextInput
+          placeholder="Date"
+          placeholderTextColor="gray"
+          style={styles.input}
+          onChangeText={(text) => setDate(text)}
+          value={date}
+          editable={false}
+        />
+        <TouchableOpacity onPress={showDate} style={styles.dateIcon}>
+          <MaterialIcons
+            name="date-range"
+            size={24}
+            color={colors.lightBlack}
+          />
+        </TouchableOpacity>
+
+        {show && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={new Date()}
+            mode="date"
+            is24Hour
+            display="default"
+            onChange={onChange}
+          />
+        )}
+      </View>
 
       {/* save button */}
-      <TouchableOpacity style={{ alignSelf: "center", marginVertical: 18 }}>
+      <TouchableOpacity
+        style={{ alignSelf: "center", marginVertical: 18 }}
+        onPress={addEntry}
+      >
         <Text
           style={{ color: colors.appPrimary, fontSize: 14, fontWeight: "bold" }}
         >

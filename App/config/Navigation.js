@@ -8,7 +8,10 @@ import IncomeExpenseDetails from "../screens/IncomeExpenseDetails";
 
 const MainStack = createStackNavigator();
 const MainStackScreen = () => (
-  <MainStack.Navigator initialRouteName="IncomeExpenseDetails">
+  <MainStack.Navigator
+  // initialRouteName="IncomeExpenseDetails"
+  // eslint-disable-next-line react/jsx-closing-bracket-location
+  >
     <MainStack.Screen
       name="Home"
       component={Home}
