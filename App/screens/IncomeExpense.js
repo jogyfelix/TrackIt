@@ -2,21 +2,25 @@ import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  Text,
   SafeAreaView,
+  Text,
   TouchableOpacity,
   TextInput,
   Platform,
+  Dimensions,
 } from "react-native";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { openDatabase } from "expo-sqlite";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { format } from "date-fns";
+import Toast from "react-native-simple-toast";
 import colors from "../constants/colors";
 import { addDetails } from "../data/dbFiles";
-import { format } from "date-fns";
+
+const screenHeight = Dimensions.get("window").height;
 
 const styles = StyleSheet.create({
-  parent: {},
+  parent: { flex: 1, height: screenHeight },
 
   headerText: {
     alignSelf: "center",
@@ -40,7 +44,25 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
     borderBottomEndRadius: 8,
   },
+  toggleButtonExpenseSelected: {
+    backgroundColor: colors.appPrimary,
+    height: 38,
+    width: 68,
+    alignItems: "center",
+    justifyContent: "center",
+    borderTopRightRadius: 8,
+    borderBottomEndRadius: 8,
+  },
   toggleButtonIncome: {
+    backgroundColor: colors.lightGray,
+    height: 38,
+    width: 68,
+    alignItems: "center",
+    justifyContent: "center",
+    borderTopLeftRadius: 8,
+    borderBottomStartRadius: 8,
+  },
+  toggleButtonIncomeSelected: {
     backgroundColor: colors.appPrimary,
     height: 38,
     width: 68,
@@ -55,6 +77,16 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   input: {
+    borderWidth: 2,
+    borderColor: colors.border,
+    marginTop: 16,
+    marginHorizontal: 16,
+    height: 42,
+    padding: 10,
+    fontSize: 16,
+    borderRadius: 8,
+  },
+  inputDate: {
     borderWidth: 2,
     borderColor: colors.border,
     marginTop: 16,
@@ -78,24 +110,53 @@ const IncomeExpense = ({ title }) => {
   const parent = title;
   const db = openDatabase("trackItDb");
 
-  const [date, setDate] = useState(format(new Date(), "MMMM do, yyyy"));
+  // selected is true if income is selected, else expense is selected it is false,income is selected by defalut
+  const [selected, setSelected] = useState(true);
+
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
 
+  // date configs
+  const dateFormat = "MMMM do, yyyy";
+  const [date, setDate] = useState(format(new Date(), dateFormat));
   const [show, setShow] = useState(false);
-
   const showDate = () => {
     setShow(true);
   };
 
+  // getting date picked from date picker
   const onChange = (event, selectedDate) => {
-    const currentDate = format(selectedDate || date, "MMMM do, yyyy");
-    setShow(Platform.OS === "ios");
-    setDate(currentDate);
+    try {
+      let currentDate;
+      if (!selectedDate) currentDate = date;
+      else currentDate = format(selectedDate, dateFormat);
+      setShow(Platform.OS === "ios");
+      setDate(currentDate);
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
+  // showing succes toast
+  const showToast = () => {
+    Toast.show("Saved");
+  };
+
+  // add values to the table
   const addEntry = () => {
-    addDetails({ db }, date, description, parseInt(amount, 10), 0);
+    // checks if income or expense is selected
+    if (selected)
+      addDetails({ db }, date, description, parseInt(amount, 10), 0)
+        .then(showToast)
+        .catch(function (error) {
+          console.log(`There has been a problem occurred:  ${error.message}`);
+        });
+    else
+      addDetails({ db }, date, description, 0, parseInt(amount, 10))
+        .then(showToast)
+        .catch(function (error) {
+          console.log(`There has been a problem occurred:  ${error.message}`);
+        });
   };
 
   return (
@@ -113,11 +174,37 @@ const IncomeExpense = ({ title }) => {
 
       {/* income expense toggle button */}
       <View style={styles.toggleParent}>
-        <TouchableOpacity style={styles.toggleButtonIncome}>
-          <Text style={{ color: colors.white }}>Income</Text>
+        <TouchableOpacity
+          style={[
+            selected
+              ? styles.toggleButtonIncomeSelected
+              : styles.toggleButtonIncome,
+          ]}
+          onPress={() => setSelected(true)}
+        >
+          <Text
+            style={[
+              selected ? { color: colors.white } : { color: colors.lightBlack },
+            ]}
+          >
+            Income
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.toggleButtonExpense}>
-          <Text style={{ color: colors.lightBlack }}>Expense</Text>
+        <TouchableOpacity
+          style={[
+            selected
+              ? styles.toggleButtonExpense
+              : styles.toggleButtonExpenseSelected,
+          ]}
+          onPress={() => setSelected(false)}
+        >
+          <Text
+            style={[
+              selected ? { color: colors.lightBlack } : { color: colors.white },
+            ]}
+          >
+            Expense
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -129,6 +216,7 @@ const IncomeExpense = ({ title }) => {
         style={styles.input}
         onChangeText={(text) => setAmount(text)}
         value={amount}
+        returnKeyType="next"
       />
 
       {/* description text input */}
@@ -138,6 +226,7 @@ const IncomeExpense = ({ title }) => {
         style={styles.input}
         onChangeText={(text) => setDescription(text)}
         value={description}
+        returnKeyType="done"
       />
 
       {/* date text input */}
@@ -145,7 +234,7 @@ const IncomeExpense = ({ title }) => {
         <TextInput
           placeholder="Date"
           placeholderTextColor="gray"
-          style={styles.input}
+          style={styles.inputDate}
           onChangeText={(text) => setDate(text)}
           value={date}
           editable={false}

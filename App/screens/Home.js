@@ -1,11 +1,11 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { View, StyleSheet, Text, StatusBar, Dimensions } from "react-native";
 import { Modalize } from "react-native-modalize";
 import { openDatabase } from "expo-sqlite";
 import colors from "../constants/colors";
 import Fab from "../components/fab";
 import IncomeExpense from "./IncomeExpense";
-import { getDetails } from "../data/dbFiles";
+import { getDetails, getPrimaryDetails } from "../data/dbFiles";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -52,25 +52,33 @@ const styles = StyleSheet.create({
 const Home = () => {
   const db = openDatabase("trackItDb");
 
+  const [balance, setBalance] = useState("0");
+  const [income, setIncome] = useState("0");
+  const [expense, setExpense] = useState("0");
+
   useEffect(() => {
     getDetails({ db })
       .then(console.log)
       .catch(function (error) {
-        console.log(
-          `There has been a problem with your fetch operation:  ${error.message}`
-        );
+        console.log(`There has been a problem occurred:  ${error.message}`);
+      });
+
+    getPrimaryDetails({ db })
+      .then((_array) => {
+        setBalance(_array[0].Balance);
+        setIncome(_array[0].Income);
+        setExpense(_array[0].Expense);
+      })
+      .catch(function (error) {
+        console.log(`There has been a problem occurred:  ${error.message}`);
       });
   });
-
-  const balance = "$3000";
-  const income = "$7320";
-  const expense = "$4500";
 
   const modalizeRef = useRef(null);
 
   return (
     <View style={styles.parent}>
-      <StatusBar backgroundColor={colors.appPrimary} />
+      <StatusBar backgroundColor={colors.appPrimary} barStyle="light-content" />
 
       {/* content dispaly view */}
       <View style={styles.mainView}>
