@@ -6,14 +6,17 @@ import {
   StatusBar,
   Dimensions,
   SectionList,
+  TouchableOpacity,
 } from "react-native";
 import { Modalize } from "react-native-modalize";
 import { openDatabase } from "expo-sqlite";
+import { format } from "date-fns";
+import _ from "lodash";
 import colors from "../constants/colors";
 import Fab from "../components/fab";
 import IncomeExpense from "./IncomeExpense";
+import IncomeExpenseDetails from "./IncomeExpenseDetails";
 import { getDetails, getPrimaryDetails } from "../data/dbFiles";
-import setDate from "date-fns/setDate";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -63,40 +66,32 @@ const Home = () => {
   const [balance, setBalance] = useState("0");
   const [income, setIncome] = useState("0");
   const [expense, setExpense] = useState("0");
+  const [clickedItem, setClickedItem] = useState({});
 
   // data from db for section list
   const [sectionData, setSectionData] = useState([]);
 
   const mapValues = (_array) => {
-    const result = [];
-    // let date = "";
+    const dateArray = [];
     _array.forEach((element) => {
-      // date = element.Date;
-      result.push({ title: element.Date, data: [element] });
+      const date = new Date(element.Date);
+      date.setHours(0, 0, 0, 0);
+      dateArray.push({ title: date, data: element });
     });
-    setSectionData(result);
+    dateArray.sort((a, b) => b.title - a.title);
+
+    const groups = _(dateArray)
+      .groupBy("title")
+      .map((details, title) => {
+        const data = details.map((detail) => detail.data);
+        return {
+          title,
+          data,
+        };
+      })
+      .value();
+    setSectionData(groups);
   };
-
-  // const DATA = [
-  //   {
-  //     title: "Main dishes",
-  //     data: ["Pizza", "Burger", "Risotto"],
-  //   },
-  //   {
-  //     title: "Sides",
-  //     data: ["French Fries", "Onion Rings", "Fried Shrimps"],
-  //   },
-  //   {
-  //     title: "Drinks",
-  //     data: ["Water", "Coke", "Beer"],
-  //   },
-  //   {
-  //     title: "Desserts",
-  //     data: ["Cheese Cake", "Ice Cream"],
-  //   },
-  // ];
-
-  // console.log(DATA);
 
   useEffect(() => {
     getDetails({ db })
@@ -119,6 +114,7 @@ const Home = () => {
   }, []);
 
   const modalizeRef = useRef(null);
+  const modalizeRefDetials = useRef(null);
 
   return (
     <View style={styles.parent}>
@@ -165,48 +161,56 @@ const Home = () => {
           style={{ marginTop: 16, marginBottom: 90 }}
           sections={sectionData}
           renderItem={({ item }) => (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                backgroundColor: colors.white,
-                marginHorizontal: 16,
-                height: 52,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 8,
+            <TouchableOpacity
+              style={{ marginVertical: 4 }}
+              onPress={() => {
+                setClickedItem(item);
+                return modalizeRefDetials.current?.open();
               }}
             >
-              <Text
+              <View
                 style={{
-                  alignSelf: "center",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  backgroundColor: colors.white,
                   marginHorizontal: 16,
-                  color: colors.lightBlack,
-                  fontSize: 16,
+                  height: 52,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  borderRadius: 8,
                 }}
               >
-                {item.Description}
-              </Text>
-              <Text
-                style={[
-                  item.Income > 0
-                    ? {
-                        alignSelf: "center",
-                        marginHorizontal: 16,
-                        color: colors.green,
-                        fontSize: 16,
-                      }
-                    : {
-                        alignSelf: "center",
-                        marginHorizontal: 16,
-                        color: colors.red,
-                        fontSize: 16,
-                      },
-                ]}
-              >
-                {item.Income > 0 ? `$${item.Income}` : `$${item.Expense}`}
-              </Text>
-            </View>
+                <Text
+                  style={{
+                    alignSelf: "center",
+                    marginHorizontal: 16,
+                    color: colors.lightBlack,
+                    fontSize: 16,
+                  }}
+                >
+                  {item.Description}
+                </Text>
+                <Text
+                  style={[
+                    item.Income > 0
+                      ? {
+                          alignSelf: "center",
+                          marginHorizontal: 16,
+                          color: colors.green,
+                          fontSize: 16,
+                        }
+                      : {
+                          alignSelf: "center",
+                          marginHorizontal: 16,
+                          color: colors.red,
+                          fontSize: 16,
+                        },
+                  ]}
+                >
+                  {item.Income > 0 ? `$${item.Income}` : `$${item.Expense}`}
+                </Text>
+              </View>
+            </TouchableOpacity>
           )}
           renderSectionHeader={({ section }) => (
             <Text
@@ -228,8 +232,19 @@ const Home = () => {
         </View>
       </View>
 
-      <Modalize ref={modalizeRef}>
-        <IncomeExpense title="Add" />
+      <Modalize ref={modalizeRef} withHandle={false} disableScrollIfPossible>
+        <IncomeExpense title="Add" close={() => modalizeRef.current?.close()} />
+      </Modalize>
+
+      <Modalize
+        ref={modalizeRefDetials}
+        withHandle={false}
+        disableScrollIfPossible
+      >
+        <IncomeExpenseDetails
+          item={clickedItem}
+          close={() => modalizeRefDetials.current?.close()}
+        />
       </Modalize>
     </View>
   );

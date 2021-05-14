@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   dateIcon: { marginRight: 16, paddingTop: 10 },
 });
 
-const IncomeExpense = ({ title }) => {
+const IncomeExpense = ({ title, close }) => {
   // setting up title from parent
   const parent = title;
   const db = openDatabase("trackItDb");
@@ -118,7 +118,9 @@ const IncomeExpense = ({ title }) => {
 
   // date configs
   const dateFormat = "MMMM do, yyyy";
-  const [date, setDate] = useState(format(new Date(), dateFormat));
+  // const dateFormat = " yyyy-MM-dd";
+  // const [date, setDate] = useState(format(new Date(), dateFormat));
+  const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
   const showDate = () => {
     setShow(true);
@@ -129,7 +131,7 @@ const IncomeExpense = ({ title }) => {
     try {
       let currentDate;
       if (!selectedDate) currentDate = date;
-      else currentDate = format(selectedDate, dateFormat);
+      else currentDate = selectedDate;
       setShow(Platform.OS === "ios");
       setDate(currentDate);
     } catch (error) {
@@ -145,14 +147,15 @@ const IncomeExpense = ({ title }) => {
   // add values to the table
   const addEntry = () => {
     // checks if income or expense is selected
+    const stringDate = date.toISOString();
     if (selected)
-      addDetails({ db }, date, description, parseInt(amount, 10), 0)
+      addDetails({ db }, stringDate, description, parseInt(amount, 10), 0)
         .then(showToast)
         .catch(function (error) {
           console.log(`There has been a problem occurred:  ${error.message}`);
         });
     else
-      addDetails({ db }, date, description, 0, parseInt(amount, 10))
+      addDetails({ db }, stringDate, description, 0, parseInt(amount, 10))
         .then(showToast)
         .catch(function (error) {
           console.log(`There has been a problem occurred:  ${error.message}`);
@@ -167,7 +170,7 @@ const IncomeExpense = ({ title }) => {
 
       {/* close button */}
       <SafeAreaView style={styles.closeButton}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => close()}>
           <AntDesign name="close" size={24} color="gray" />
         </TouchableOpacity>
       </SafeAreaView>
@@ -236,7 +239,7 @@ const IncomeExpense = ({ title }) => {
           placeholderTextColor="gray"
           style={styles.inputDate}
           onChangeText={(text) => setDate(text)}
-          value={date}
+          value={format(date, dateFormat)}
           editable={false}
         />
         <TouchableOpacity onPress={showDate} style={styles.dateIcon}>

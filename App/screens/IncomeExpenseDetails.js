@@ -22,7 +22,14 @@ const styles = StyleSheet.create({
     top: 16,
     position: "absolute",
   },
-  balance: {
+  income: {
+    alignSelf: "center",
+    marginVertical: 64,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: colors.green,
+  },
+  expense: {
     alignSelf: "center",
     marginVertical: 64,
     fontSize: 28,
@@ -42,11 +49,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const IncomeExpenseDetails = () => {
-  const heading = "Expense";
-  const balanceValue = "$329";
-  const description = "Car typre change";
-  const date = "April 20, 2021";
+const IncomeExpenseDetails = ({ item, close }) => {
+  const heading = item.Income > 0 ? "Income" : "Expense";
+  const balanceValue = item.Income > 0 ? item.Income : item.Expense;
+  const description = item.Description;
+  const date = item.Date;
 
   return (
     <View>
@@ -55,13 +62,15 @@ const IncomeExpenseDetails = () => {
 
       {/* close button */}
       <SafeAreaView style={styles.closeButton}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => close()}>
           <AntDesign name="close" size={24} color="gray" />
         </TouchableOpacity>
       </SafeAreaView>
 
       {/* main balance */}
-      <Text style={styles.balance}>{balanceValue}</Text>
+      <Text style={item.Income > 0 ? styles.income : styles.expense}>
+        {`$${balanceValue}`}
+      </Text>
 
       {/* description */}
       <Text style={styles.description}>{description}</Text>

@@ -28,7 +28,7 @@ export const getDetails = async ({ db }) => {
   const promise = new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "select * from TrackItTable GROUP BY Date",
+        "select * from TrackItTable",
         [],
         (_, { rows: { _array } }) => {
           resolve(_array);
