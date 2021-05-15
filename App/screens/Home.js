@@ -63,6 +63,9 @@ const styles = StyleSheet.create({
 const Home = () => {
   const db = openDatabase("trackItDb");
 
+  // date configs
+  const dateFormat = "MMMM do, yyyy";
+
   const [balance, setBalance] = useState("0");
   const [income, setIncome] = useState("0");
   const [expense, setExpense] = useState("0");
@@ -91,9 +94,11 @@ const Home = () => {
       })
       .value();
     setSectionData(groups);
+    console.log(groups);
   };
 
-  useEffect(() => {
+  // getting data from db
+  const getData = () => {
     getDetails({ db })
       .then((_array) => {
         mapValues(_array);
@@ -111,6 +116,10 @@ const Home = () => {
       .catch(function (error) {
         console.log(`There has been a problem occurred:  ${error.message}`);
       });
+  };
+
+  useEffect(() => {
+    getData();
   }, []);
 
   const modalizeRef = useRef(null);
@@ -220,7 +229,7 @@ const Home = () => {
                 marginVertical: 16,
               }}
             >
-              {section.title}
+              {format(Date.parse(section.title), dateFormat)}
             </Text>
           )}
           keyExtractor={(item, index) => index + item}
@@ -233,7 +242,13 @@ const Home = () => {
       </View>
 
       <Modalize ref={modalizeRef} withHandle={false} disableScrollIfPossible>
-        <IncomeExpense title="Add" close={() => modalizeRef.current?.close()} />
+        <IncomeExpense
+          title="Add"
+          close={() => {
+            getData();
+            return modalizeRef.current?.close();
+          }}
+        />
       </Modalize>
 
       <Modalize
@@ -243,7 +258,11 @@ const Home = () => {
       >
         <IncomeExpenseDetails
           item={clickedItem}
-          close={() => modalizeRefDetials.current?.close()}
+          close={() => {
+            getData();
+            return modalizeRefDetials.current?.close();
+          }}
+          openEdit={() => modalizeRef.current?.open()}
         />
       </Modalize>
     </View>

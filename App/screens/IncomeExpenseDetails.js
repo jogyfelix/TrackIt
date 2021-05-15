@@ -8,6 +8,9 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import colors from "../constants/colors";
+import { removeData } from "../data/dbFiles";
+import Toast from "react-native-simple-toast";
+import { openDatabase } from "expo-sqlite";
 
 const styles = StyleSheet.create({
   headerText: {
@@ -49,11 +52,22 @@ const styles = StyleSheet.create({
   },
 });
 
-const IncomeExpenseDetails = ({ item, close }) => {
+const IncomeExpenseDetails = ({ item, close, openEdit }) => {
+  const db = openDatabase("trackItDb");
   const heading = item.Income > 0 ? "Income" : "Expense";
   const balanceValue = item.Income > 0 ? item.Income : item.Expense;
   const description = item.Description;
   const date = item.Date;
+
+  const deleteData = () => {
+    removeData({ db }, item.id, description)
+      .then(() => {
+        Toast.show("Removed");
+      })
+      .catch(function (error) {
+        console.log(`There has been a problem occurred:  ${error.message}`);
+      });
+  };
 
   return (
     <View>
@@ -79,7 +93,10 @@ const IncomeExpenseDetails = ({ item, close }) => {
       <Text style={styles.date}>{date}</Text>
 
       {/* edit button */}
-      <TouchableOpacity style={{ alignSelf: "center", marginTop: 32 }}>
+      <TouchableOpacity
+        style={{ alignSelf: "center", marginTop: 32 }}
+        onPress={() => openEdit()}
+      >
         <Text
           style={{ color: colors.appPrimary, fontSize: 14, fontWeight: "bold" }}
         >
@@ -88,7 +105,10 @@ const IncomeExpenseDetails = ({ item, close }) => {
       </TouchableOpacity>
 
       {/* delete button */}
-      <TouchableOpacity style={{ alignSelf: "center", marginVertical: 18 }}>
+      <TouchableOpacity
+        style={{ alignSelf: "center", marginVertical: 18 }}
+        onPress={() => deleteData()}
+      >
         <Text
           style={{ color: colors.lightBlack, fontSize: 14, fontWeight: "bold" }}
         >

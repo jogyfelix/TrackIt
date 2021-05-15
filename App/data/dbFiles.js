@@ -55,3 +55,19 @@ export const getPrimaryDetails = async ({ db }) => {
   });
   return promise;
 };
+
+export const removeData = async ({ db }, id, desc) => {
+  const promise = new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "delete from TrackItTable where id=? and Description=?",
+        [id, desc],
+        () => {
+          resolve("Removed");
+        },
+        (_, error) => reject(error)
+      );
+    });
+  });
+  return promise;
+};
