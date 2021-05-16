@@ -169,37 +169,63 @@ const IncomeExpense = ({
 
   // add values to the table
   const addEntry = () => {
-    const stringDate = date.toISOString();
-    // if true updates entries
-    if (edit) {
-      // checks if income or expense is selected
-      if (selected)
-        updateData({ db }, id, description, stringDate, parseInt(amount, 10), 0)
-          .then(() => Toast.show("Updated"))
-          .catch(function (error) {
-            console.log(`There has been a problem occurred:  ${error.message}`);
-          });
-      else
-        updateData({ db }, id, description, stringDate, 0, parseInt(amount, 10))
-          .then(() => Toast.show("Updated"))
-          .catch(function (error) {
-            console.log(`There has been a problem occurred:  ${error.message}`);
-          });
+    if (description === "" || amount === 0) {
+      Toast.show("Please fill in");
     } else {
-      // checks if income or expense is selected
-      // eslint-disable-next-line no-lonely-if
-      if (selected) {
-        addDetails({ db }, stringDate, description, parseInt(amount, 10), 0)
-          .then(showToast)
-          .catch(function (error) {
-            console.log(`There has been a problem occurred:  ${error.message}`);
-          });
+      const stringDate = date.toISOString();
+      // if true updates entries
+      if (edit) {
+        // checks if income or expense is selected
+        if (selected)
+          updateData(
+            { db },
+            id,
+            description,
+            stringDate,
+            parseInt(amount, 10),
+            0
+          )
+            .then(() => Toast.show("Updated"))
+            .catch(function (error) {
+              console.log(
+                `There has been a problem occurred:  ${error.message}`
+              );
+            });
+        else
+          updateData(
+            { db },
+            id,
+            description,
+            stringDate,
+            0,
+            parseInt(amount, 10)
+          )
+            .then(() => Toast.show("Updated"))
+            .catch(function (error) {
+              console.log(
+                `There has been a problem occurred:  ${error.message}`
+              );
+            });
       } else {
-        addDetails({ db }, stringDate, description, 0, parseInt(amount, 10))
-          .then(showToast)
-          .catch(function (error) {
-            console.log(`There has been a problem occurred:  ${error.message}`);
-          });
+        // checks if income or expense is selected
+        // eslint-disable-next-line no-lonely-if
+        if (selected) {
+          addDetails({ db }, stringDate, description, parseInt(amount, 10), 0)
+            .then(showToast)
+            .catch(function (error) {
+              console.log(
+                `There has been a problem occurred:  ${error.message}`
+              );
+            });
+        } else {
+          addDetails({ db }, stringDate, description, 0, parseInt(amount, 10))
+            .then(showToast)
+            .catch(function (error) {
+              console.log(
+                `There has been a problem occurred:  ${error.message}`
+              );
+            });
+        }
       }
     }
   };
