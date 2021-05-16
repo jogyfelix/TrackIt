@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,10 +7,12 @@ import {
   SafeAreaView,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import colors from "../constants/colors";
-import { removeData } from "../data/dbFiles";
 import Toast from "react-native-simple-toast";
 import { openDatabase } from "expo-sqlite";
+import { Modalize } from "react-native-modalize";
+import { removeData } from "../data/dbFiles";
+import colors from "../constants/colors";
+import IncomeExpense from "./IncomeExpense";
 
 const styles = StyleSheet.create({
   headerText: {
@@ -52,12 +54,15 @@ const styles = StyleSheet.create({
   },
 });
 
-const IncomeExpenseDetails = ({ item, close, openEdit }) => {
+const IncomeExpenseDetails = ({ item, close }) => {
   const db = openDatabase("trackItDb");
   const heading = item.Income > 0 ? "Income" : "Expense";
   const balanceValue = item.Income > 0 ? item.Income : item.Expense;
   const description = item.Description;
   const date = item.Date;
+  const id = item.id;
+
+  const modalizeRef = useRef(null);
 
   const deleteData = () => {
     removeData({ db }, item.id, description)
@@ -95,7 +100,9 @@ const IncomeExpenseDetails = ({ item, close, openEdit }) => {
       {/* edit button */}
       <TouchableOpacity
         style={{ alignSelf: "center", marginTop: 32 }}
-        onPress={() => openEdit()}
+        onPress={() => {
+          modalizeRef.current?.open();
+        }}
       >
         <Text
           style={{ color: colors.appPrimary, fontSize: 14, fontWeight: "bold" }}
@@ -115,6 +122,21 @@ const IncomeExpenseDetails = ({ item, close, openEdit }) => {
           Delete
         </Text>
       </TouchableOpacity>
+
+      <Modalize ref={modalizeRef} withHandle={false} disableScrollIfPossible>
+        <IncomeExpense
+          title="Edit"
+          close={() => {
+            close();
+            return modalizeRef.current?.close();
+          }}
+          heading={heading}
+          balanceValue={balanceValue}
+          descFromEdit={description}
+          dateFromEdit={date}
+          idNo={id}
+        />
+      </Modalize>
     </View>
   );
 };

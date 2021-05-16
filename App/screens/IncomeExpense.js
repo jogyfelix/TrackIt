@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -15,7 +15,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import Toast from "react-native-simple-toast";
 import colors from "../constants/colors";
-import { addDetails } from "../data/dbFiles";
+import { addDetails, updateData } from "../data/dbFiles";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -105,9 +105,20 @@ const styles = StyleSheet.create({
   dateIcon: { marginRight: 16, paddingTop: 10 },
 });
 
-const IncomeExpense = ({ title, close }) => {
+const IncomeExpense = ({
+  title,
+  close,
+  heading,
+  balanceValue,
+  descFromEdit,
+  dateFromEdit,
+  idNo,
+}) => {
+  // check if Edit or Add
+  const edit = heading !== undefined;
+
   // setting up title from parent
-  const parent = title;
+  const parent = edit ? "Edit" : title;
   const db = openDatabase("trackItDb");
 
   // selected is true if income is selected, else expense is selected it is false,income is selected by defalut
@@ -115,6 +126,7 @@ const IncomeExpense = ({ title, close }) => {
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
+  const [id, setID] = useState(0);
 
   // date configs
   const dateFormat = "MMMM do, yyyy";
@@ -125,6 +137,17 @@ const IncomeExpense = ({ title, close }) => {
   const showDate = () => {
     setShow(true);
   };
+
+  useEffect(() => {
+    if (edit) {
+      if (heading === "Income") setSelected(true);
+      else setSelected(false);
+      setDescription(descFromEdit);
+      setAmount(`${balanceValue}`);
+      setDate(new Date(dateFromEdit));
+      setID(idNo);
+    }
+  }, []);
 
   // getting date picked from date picker
   const onChange = (event, selectedDate) => {
@@ -146,20 +169,39 @@ const IncomeExpense = ({ title, close }) => {
 
   // add values to the table
   const addEntry = () => {
-    // checks if income or expense is selected
     const stringDate = date.toISOString();
-    if (selected)
-      addDetails({ db }, stringDate, description, parseInt(amount, 10), 0)
-        .then(showToast)
-        .catch(function (error) {
-          console.log(`There has been a problem occurred:  ${error.message}`);
-        });
-    else
-      addDetails({ db }, stringDate, description, 0, parseInt(amount, 10))
-        .then(showToast)
-        .catch(function (error) {
-          console.log(`There has been a problem occurred:  ${error.message}`);
-        });
+    // if true updates entries
+    if (edit) {
+      // checks if income or expense is selected
+      if (selected)
+        updateData({ db }, id, description, stringDate, parseInt(amount, 10), 0)
+          .then(() => Toast.show("Updated"))
+          .catch(function (error) {
+            console.log(`There has been a problem occurred:  ${error.message}`);
+          });
+      else
+        updateData({ db }, id, description, stringDate, 0, parseInt(amount, 10))
+          .then(() => Toast.show("Updated"))
+          .catch(function (error) {
+            console.log(`There has been a problem occurred:  ${error.message}`);
+          });
+    } else {
+      // checks if income or expense is selected
+      // eslint-disable-next-line no-lonely-if
+      if (selected) {
+        addDetails({ db }, stringDate, description, parseInt(amount, 10), 0)
+          .then(showToast)
+          .catch(function (error) {
+            console.log(`There has been a problem occurred:  ${error.message}`);
+          });
+      } else {
+        addDetails({ db }, stringDate, description, 0, parseInt(amount, 10))
+          .then(showToast)
+          .catch(function (error) {
+            console.log(`There has been a problem occurred:  ${error.message}`);
+          });
+      }
+    }
   };
 
   return (
@@ -253,7 +295,7 @@ const IncomeExpense = ({ title, close }) => {
         {show && (
           <DateTimePicker
             testID="dateTimePicker"
-            value={new Date()}
+            value={date}
             mode="date"
             is24Hour
             display="default"

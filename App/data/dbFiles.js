@@ -71,3 +71,19 @@ export const removeData = async ({ db }, id, desc) => {
   });
   return promise;
 };
+
+export const updateData = async ({ db }, id, desc, date, income, expense) => {
+  const promise = new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "update TrackItTable set Date=?,Description=?,Expense=?,Income=? where id = ?",
+        [date, desc, expense, income, id],
+        () => {
+          resolve("Removed");
+        },
+        (_, error) => reject(error)
+      );
+    });
+  });
+  return promise;
+};

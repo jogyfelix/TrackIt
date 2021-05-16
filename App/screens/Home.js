@@ -94,7 +94,6 @@ const Home = () => {
       })
       .value();
     setSectionData(groups);
-    console.log(groups);
   };
 
   // getting data from db
@@ -262,7 +261,6 @@ const Home = () => {
             getData();
             return modalizeRefDetials.current?.close();
           }}
-          openEdit={() => modalizeRef.current?.open()}
         />
       </Modalize>
     </View>
