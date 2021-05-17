@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useReducer } from "react";
+import React, { useRef, useEffect, useReducer, useContext } from "react";
 import {
   View,
   StyleSheet,
@@ -17,6 +17,7 @@ import Fab from "../components/fab";
 import IncomeExpense from "./IncomeExpense";
 import IncomeExpenseDetails from "./IncomeExpenseDetails";
 import { getDetails, getPrimaryDetails } from "../data/dbFiles";
+import { SelectedItemContext } from "../util/SelectedItemContextProvider";
 
 const styles = StyleSheet.create({
   parent: {
@@ -68,8 +69,8 @@ const reducer = (state, action) => {
       return { ...state, expense: action.payload };
 
     // section list clicked item
-    case "change_clickedItem":
-      return { ...state, clickedItem: action.payload };
+    // case "change_clickedItem":
+    //   return { ...state, clickedItem: action.payload };
 
     // section list data
     case "change_sectionData":
@@ -82,6 +83,9 @@ const reducer = (state, action) => {
 const Home = () => {
   const db = openDatabase("trackItDb");
 
+  // section list clicked item
+  const { setclickedItem } = useContext(SelectedItemContext);
+
   // date format
   const dateFormat = "MMMM do, yyyy";
 
@@ -89,7 +93,7 @@ const Home = () => {
     balance: 0,
     income: 0,
     expense: 0,
-    clickedItem: {},
+    // clickedItem: {},
     sectionData: [],
   });
 
@@ -221,8 +225,9 @@ const Home = () => {
             <TouchableOpacity
               style={{ marginVertical: 4 }}
               onPress={() => {
-                // setClickedItem(item);
-                dispatch({ type: "change_clickedItem", payload: item });
+                setclickedItem(item);
+                // dispatch({ type: "change_clickedItem", payload: item });
+
                 return modalizeRefDetials.current?.open();
               }}
             >
@@ -312,7 +317,6 @@ const Home = () => {
         }}
       >
         <IncomeExpenseDetails
-          item={state.clickedItem}
           close={() => {
             getData();
             return modalizeRefDetials.current?.close();

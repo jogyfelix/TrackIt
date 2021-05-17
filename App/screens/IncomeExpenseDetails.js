@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import { Modalize } from "react-native-modalize";
 import { removeData } from "../data/dbFiles";
 import colors from "../constants/colors";
 import IncomeExpense from "./IncomeExpense";
+import { SelectedItemContext } from "../util/SelectedItemContextProvider";
 
 const styles = StyleSheet.create({
   headerText: {
@@ -54,18 +55,21 @@ const styles = StyleSheet.create({
   },
 });
 
-const IncomeExpenseDetails = ({ item, close }) => {
+const IncomeExpenseDetails = ({ close }) => {
   const db = openDatabase("trackItDb");
-  const heading = item.Income > 0 ? "Income" : "Expense";
-  const balanceValue = item.Income > 0 ? item.Income : item.Expense;
-  const description = item.Description;
-  const date = item.Date;
-  const id = item.id;
+
+  const { clickedItem } = useContext(SelectedItemContext);
+
+  const heading = clickedItem.Income > 0 ? "Income" : "Expense";
+  const balanceValue =
+    clickedItem.Income > 0 ? clickedItem.Income : clickedItem.Expense;
+  const description = clickedItem.Description;
+  const date = clickedItem.Date;
 
   const modalizeRef = useRef(null);
 
   const deleteData = () => {
-    removeData({ db }, item.id, description)
+    removeData({ db }, clickedItem.id, description)
       .then(() => {
         Toast.show("Removed");
       })
@@ -87,7 +91,7 @@ const IncomeExpenseDetails = ({ item, close }) => {
       </SafeAreaView>
 
       {/* main balance */}
-      <Text style={item.Income > 0 ? styles.income : styles.expense}>
+      <Text style={clickedItem.Income > 0 ? styles.income : styles.expense}>
         {`$${balanceValue}`}
       </Text>
 
@@ -143,11 +147,6 @@ const IncomeExpenseDetails = ({ item, close }) => {
             close();
             return modalizeRef.current?.close();
           }}
-          heading={heading}
-          balanceValue={balanceValue}
-          descFromEdit={description}
-          dateFromEdit={date}
-          idNo={id}
         />
       </Modalize>
     </View>

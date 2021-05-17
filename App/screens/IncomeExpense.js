@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer, useEffect, useContext } from "react";
 import {
   View,
   StyleSheet,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
-  Dimensions,
 } from "react-native";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { openDatabase } from "expo-sqlite";
@@ -16,12 +15,10 @@ import { format } from "date-fns";
 import Toast from "react-native-simple-toast";
 import colors from "../constants/colors";
 import { addDetails, updateData } from "../data/dbFiles";
-
-const screenHeight = Dimensions.get("window").height;
+import { SelectedItemContext } from "../util/SelectedItemContextProvider";
 
 const styles = StyleSheet.create({
-  parent: { flex: 1, height: screenHeight },
-
+  parent: { flex: 1, height: "100%" },
   headerText: {
     alignSelf: "center",
     marginTop: 16,
@@ -124,20 +121,10 @@ const reducer = (state, action) => {
   }
 };
 
-const IncomeExpense = ({
-  title,
-  close,
-  heading,
-  balanceValue,
-  descFromEdit,
-  dateFromEdit,
-  idNo,
-}) => {
-  // check if Edit or Add
-  const edit = heading !== undefined;
+const IncomeExpense = ({ title, close }) => {
+  const { clickedItem } = useContext(SelectedItemContext);
+  const heading = clickedItem.Income > 0 ? "Income" : "Expense";
 
-  // setting up title from parent
-  const parent = edit ? "Edit" : title;
   const db = openDatabase("trackItDb");
 
   const [state, dispatch] = useReducer(reducer, {
@@ -160,18 +147,24 @@ const IncomeExpense = ({
   };
 
   useEffect(() => {
-    if (edit) {
-      if (heading === "Income")
+    if (title === "Edit") {
+      if (heading === "Income") {
+        dispatch({ type: "change_amount", payload: `${clickedItem.Income}` });
         dispatch({ type: "change_selected", payload: true });
-      else dispatch({ type: "change_selected", payload: false });
+      } else {
+        dispatch({ type: "change_amount", payload: `${clickedItem.Expense}` });
+        dispatch({ type: "change_selected", payload: false });
+      }
       // setDescription(descFromEdit);
-      dispatch({ type: "change_description", payload: descFromEdit });
-      // setAmount(`${balanceValue}`);
-      dispatch({ type: "change_amount", payload: `${balanceValue}` });
+      dispatch({
+        type: "change_description",
+        payload: clickedItem.Description,
+      });
+
       // setDate(new Date(dateFromEdit));
-      dispatch({ type: "change_date", payload: new Date(dateFromEdit) });
+      dispatch({ type: "change_date", payload: new Date(clickedItem.Date) });
       // setID(idNo);
-      dispatch({ type: "change_id", payload: idNo });
+      dispatch({ type: "change_id", payload: clickedItem.id });
     }
   }, []);
 
@@ -202,7 +195,7 @@ const IncomeExpense = ({
     } else {
       const stringDate = state.date.toISOString();
       // if true updates entries
-      if (edit) {
+      if (title === "Edit") {
         // checks if income or expense is selected
         if (state.selected)
           updateData(
@@ -286,7 +279,7 @@ const IncomeExpense = ({
     //   main parent view
     <View style={styles.parent}>
       {/* page header */}
-      <Text style={styles.headerText}>{`${parent} Income/Expense`}</Text>
+      <Text style={styles.headerText}>{`${title} Income/Expense`}</Text>
 
       {/* close button */}
       <SafeAreaView style={styles.closeButton}>
