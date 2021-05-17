@@ -10,10 +10,10 @@ import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-simple-toast";
 import { openDatabase } from "expo-sqlite";
 import { Modalize } from "react-native-modalize";
-import { removeData } from "../data/dbFiles";
-import colors from "../constants/colors";
-import IncomeExpense from "./IncomeExpense";
-import { SelectedItemContext } from "../util/SelectedItemContextProvider";
+import { removeData } from "../../data/dbFiles";
+import colors from "../../constants/colors";
+import IncomeExpense from "../incomeExpense/IncomeExpense";
+import { SelectedItemContext } from "../../util/SelectedItemContextProvider";
 
 const styles = StyleSheet.create({
   headerText: {
@@ -66,8 +66,10 @@ const IncomeExpenseDetails = ({ close }) => {
   const description = clickedItem.Description;
   const date = clickedItem.Date;
 
+  // for opening modal sheet
   const modalizeRef = useRef(null);
 
+  // fn for deleting entriy from db
   const deleteData = () => {
     removeData({ db }, clickedItem.id, description)
       .then(() => {

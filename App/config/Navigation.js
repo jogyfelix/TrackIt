@@ -2,9 +2,9 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import colors from "../constants/colors";
-import Home from "../screens/Home";
-import IncomeExpense from "../screens/IncomeExpense";
-import IncomeExpenseDetails from "../screens/IncomeExpenseDetails";
+import Home from "../screens/home/Home";
+import IncomeExpense from "../screens/incomeExpense/IncomeExpense";
+import IncomeExpenseDetails from "../screens/incomeExpenseDetails/IncomeExpenseDetails";
 
 const MainStack = createStackNavigator();
 const MainStackScreen = () => (

@@ -13,9 +13,10 @@ import { openDatabase } from "expo-sqlite";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import Toast from "react-native-simple-toast";
-import colors from "../constants/colors";
-import { addDetails, updateData } from "../data/dbFiles";
-import { SelectedItemContext } from "../util/SelectedItemContextProvider";
+import colors from "../../constants/colors";
+import { addDetails, updateData } from "../../data/dbFiles";
+import { SelectedItemContext } from "../../util/SelectedItemContextProvider";
+import { reducer } from "./reducer";
 
 const styles = StyleSheet.create({
   parent: { flex: 1, height: "100%" },
@@ -102,27 +103,10 @@ const styles = StyleSheet.create({
   dateIcon: { marginRight: 16, paddingTop: 10 },
 });
 
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "change_selected":
-      return { ...state, selected: action.payload };
-    case "change_description":
-      return { ...state, description: action.payload };
-    case "change_amount":
-      return { ...state, amount: action.payload };
-    case "change_id":
-      return { ...state, id: action.payload };
-    case "change_date":
-      return { ...state, date: action.payload };
-    case "change_show":
-      return { ...state, show: action.payload };
-    default:
-      return state;
-  }
-};
-
 const IncomeExpense = ({ title, close }) => {
   const { clickedItem } = useContext(SelectedItemContext);
+
+  // checks the type of entry to be updated(income/expense)
   const heading = clickedItem.Income > 0 ? "Income" : "Expense";
 
   const db = openDatabase("trackItDb");
@@ -138,11 +122,10 @@ const IncomeExpense = ({ title, close }) => {
     show: false,
   });
 
-  // date configs
+  // date format
   const dateFormat = "MMMM do, yyyy";
 
   const showDate = () => {
-    // setShow(true);
     dispatch({ type: "change_show", payload: true });
   };
 
@@ -155,15 +138,11 @@ const IncomeExpense = ({ title, close }) => {
         dispatch({ type: "change_amount", payload: `${clickedItem.Expense}` });
         dispatch({ type: "change_selected", payload: false });
       }
-      // setDescription(descFromEdit);
       dispatch({
         type: "change_description",
         payload: clickedItem.Description,
       });
-
-      // setDate(new Date(dateFromEdit));
       dispatch({ type: "change_date", payload: new Date(clickedItem.Date) });
-      // setID(idNo);
       dispatch({ type: "change_id", payload: clickedItem.id });
     }
   }, []);
@@ -174,18 +153,11 @@ const IncomeExpense = ({ title, close }) => {
       let currentDate;
       if (!selectedDate) currentDate = state.date;
       else currentDate = selectedDate;
-      // setShow(Platform.OS === "ios");
       dispatch({ type: "change_show", payload: Platform.OS === "ios" });
-      // setDate(currentDate);
       dispatch({ type: "change_date", payload: currentDate });
     } catch (error) {
       console.log(error.message);
     }
-  };
-
-  // showing succes toast
-  const showToast = () => {
-    Toast.show("Saved");
   };
 
   // add values to the table
@@ -248,7 +220,7 @@ const IncomeExpense = ({ title, close }) => {
             0
           )
             .then(() => {
-              showToast();
+              Toast.show("Saved");
               close();
             })
             .catch(function (error) {
@@ -265,7 +237,7 @@ const IncomeExpense = ({ title, close }) => {
             parseInt(state.amount, 10)
           )
             .then(() => {
-              showToast();
+              Toast.show("Saved");
               close();
             })
             .catch(function (error) {

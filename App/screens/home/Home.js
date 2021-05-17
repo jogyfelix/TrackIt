@@ -12,12 +12,13 @@ import { Modalize } from "react-native-modalize";
 import { openDatabase } from "expo-sqlite";
 import { format } from "date-fns";
 import _ from "lodash";
-import colors from "../constants/colors";
-import Fab from "../components/fab";
-import IncomeExpense from "./IncomeExpense";
-import IncomeExpenseDetails from "./IncomeExpenseDetails";
-import { getDetails, getPrimaryDetails } from "../data/dbFiles";
-import { SelectedItemContext } from "../util/SelectedItemContextProvider";
+import colors from "../../constants/colors";
+import Fab from "../../components/fab";
+import IncomeExpense from "../incomeExpense/IncomeExpense";
+import IncomeExpenseDetails from "../incomeExpenseDetails/IncomeExpenseDetails";
+import { getDetails, getPrimaryDetails } from "../../data/dbFiles";
+import { SelectedItemContext } from "../../util/SelectedItemContextProvider";
+import { reducer } from "./reducer";
 
 const styles = StyleSheet.create({
   parent: {
@@ -57,28 +58,29 @@ const styles = StyleSheet.create({
     bottom: 16,
     alignSelf: "center",
   },
+  emptyList: {
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    marginVertical: 120,
+  },
+  sectionListItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: colors.white,
+    marginHorizontal: 16,
+    height: 52,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  sectionHeader: {
+    color: colors.lightBlack,
+    alignSelf: "center",
+    marginVertical: 16,
+  },
 });
-
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "change_balance":
-      return { ...state, balance: action.payload };
-    case "change_income":
-      return { ...state, income: action.payload };
-    case "change_expense":
-      return { ...state, expense: action.payload };
-
-    // section list clicked item
-    // case "change_clickedItem":
-    //   return { ...state, clickedItem: action.payload };
-
-    // section list data
-    case "change_sectionData":
-      return { ...state, sectionData: action.payload };
-    default:
-      return state;
-  }
-};
 
 const Home = () => {
   const db = openDatabase("trackItDb");
@@ -93,7 +95,6 @@ const Home = () => {
     balance: 0,
     income: 0,
     expense: 0,
-    // clickedItem: {},
     sectionData: [],
   });
 
@@ -117,7 +118,6 @@ const Home = () => {
         };
       })
       .value();
-    // setSectionData(groups);
     dispatch({ type: "change_sectionData", payload: groups });
   };
 
@@ -133,11 +133,8 @@ const Home = () => {
 
     getPrimaryDetails({ db })
       .then((_array) => {
-        // setBalance(_array[0].Balance);
         dispatch({ type: "change_balance", payload: _array[0].Balance });
-        // setIncome(_array[0].Income);
         dispatch({ type: "change_income", payload: _array[0].Income });
-        // setExpense(_array[0].Expense);
         dispatch({ type: "change_expense", payload: _array[0].Expense });
       })
       .catch(function (error) {
@@ -200,19 +197,10 @@ const Home = () => {
           ListFooterComponent={<View style={{ height: 52 }} />}
           ListEmptyComponent={() => {
             return (
-              <View
-                style={{
-                  alignSelf: "center",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-
-                  marginVertical: 120,
-                }}
-              >
+              <View style={styles.emptyList}>
                 <Image
                   style={{ height: 80, width: 80 }}
-                  source={require("../assets/images/empty_icon.png")}
+                  source={require("../../assets/images/empty_icon.png")}
                 />
                 <Text style={{ color: colors.lightBlack }}>
                   Ouhh..nothing to Track.
@@ -226,23 +214,10 @@ const Home = () => {
               style={{ marginVertical: 4 }}
               onPress={() => {
                 setclickedItem(item);
-                // dispatch({ type: "change_clickedItem", payload: item });
-
                 return modalizeRefDetials.current?.open();
               }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  backgroundColor: colors.white,
-                  marginHorizontal: 16,
-                  height: 52,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  borderRadius: 8,
-                }}
-              >
+              <View style={styles.sectionListItem}>
                 <Text
                   style={{
                     alignSelf: "center",
@@ -276,13 +251,7 @@ const Home = () => {
             </TouchableOpacity>
           )}
           renderSectionHeader={({ section }) => (
-            <Text
-              style={{
-                color: colors.lightBlack,
-                alignSelf: "center",
-                marginVertical: 16,
-              }}
-            >
+            <Text style={styles.sectionHeader}>
               {format(Date.parse(section.title), dateFormat)}
             </Text>
           )}
