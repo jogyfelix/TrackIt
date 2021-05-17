@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useReducer } from "react";
 import {
   View,
   StyleSheet,
@@ -60,20 +60,42 @@ const styles = StyleSheet.create({
   },
 });
 
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "change_balance":
+      return { ...state, balance: action.payload };
+    case "change_income":
+      return { ...state, income: action.payload };
+    case "change_expense":
+      return { ...state, expense: action.payload };
+
+    // section list clicked item
+    case "change_clickedItem":
+      return { ...state, clickedItem: action.payload };
+
+    // section list data
+    case "change_sectionData":
+      return { ...state, sectionData: action.payload };
+    default:
+      return state;
+  }
+};
+
 const Home = () => {
   const db = openDatabase("trackItDb");
 
-  // date configs
+  // date format
   const dateFormat = "MMMM do, yyyy";
 
-  const [balance, setBalance] = useState("0");
-  const [income, setIncome] = useState("0");
-  const [expense, setExpense] = useState("0");
-  const [clickedItem, setClickedItem] = useState({});
+  const [state, dispatch] = useReducer(reducer, {
+    balance: 0,
+    income: 0,
+    expense: 0,
+    clickedItem: {},
+    sectionData: [],
+  });
 
-  // data from db for section list
-  const [sectionData, setSectionData] = useState([]);
-
+  // fn for mapping values for section list
   const mapValues = (_array) => {
     const dateArray = [];
     _array.forEach((element) => {
@@ -93,7 +115,8 @@ const Home = () => {
         };
       })
       .value();
-    setSectionData(groups);
+    // setSectionData(groups);
+    dispatch({ type: "change_sectionData", payload: groups });
   };
 
   // getting data from db
@@ -108,9 +131,12 @@ const Home = () => {
 
     getPrimaryDetails({ db })
       .then((_array) => {
-        setBalance(_array[0].Balance);
-        setIncome(_array[0].Income);
-        setExpense(_array[0].Expense);
+        // setBalance(_array[0].Balance);
+        dispatch({ type: "change_balance", payload: _array[0].Balance });
+        // setIncome(_array[0].Income);
+        dispatch({ type: "change_income", payload: _array[0].Income });
+        // setExpense(_array[0].Expense);
+        dispatch({ type: "change_expense", payload: _array[0].Expense });
       })
       .catch(function (error) {
         console.log(`There has been a problem occurred:  ${error.message}`);
@@ -121,6 +147,7 @@ const Home = () => {
     getData();
   }, []);
 
+  // Refs for modal sheet
   const modalizeRef = useRef(null);
   const modalizeRefDetials = useRef(null);
 
@@ -140,7 +167,7 @@ const Home = () => {
               fontWeight: "bold",
             }}
           >
-            {`$${balance}`}
+            {`$${state.balance}`}
           </Text>
         </View>
 
@@ -153,10 +180,10 @@ const Home = () => {
           <Text
             style={{ color: colors.green, fontSize: 24, fontWeight: "bold" }}
           >
-            {`$${income}`}
+            {`$${state.income}`}
           </Text>
           <Text style={{ color: colors.red, fontSize: 24, fontWeight: "bold" }}>
-            {`$${expense}`}
+            {`$${state.expense}`}
           </Text>
           <Text style={{ color: "gray" }}>Expense</Text>
         </View>
@@ -167,12 +194,13 @@ const Home = () => {
         {/* list */}
         <SectionList
           style={{ marginTop: 16, marginBottom: 90 }}
-          sections={sectionData}
+          sections={state.sectionData}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={{ marginVertical: 4 }}
               onPress={() => {
-                setClickedItem(item);
+                // setClickedItem(item);
+                dispatch({ type: "change_clickedItem", payload: item });
                 return modalizeRefDetials.current?.open();
               }}
             >
@@ -256,7 +284,7 @@ const Home = () => {
         disableScrollIfPossible
       >
         <IncomeExpenseDetails
-          item={clickedItem}
+          item={state.clickedItem}
           close={() => {
             getData();
             return modalizeRefDetials.current?.close();

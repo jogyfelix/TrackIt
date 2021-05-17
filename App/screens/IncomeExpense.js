@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useReducer, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -105,6 +105,25 @@ const styles = StyleSheet.create({
   dateIcon: { marginRight: 16, paddingTop: 10 },
 });
 
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "change_selected":
+      return { ...state, selected: action.payload };
+    case "change_description":
+      return { ...state, description: action.payload };
+    case "change_amount":
+      return { ...state, amount: action.payload };
+    case "change_id":
+      return { ...state, id: action.payload };
+    case "change_date":
+      return { ...state, date: action.payload };
+    case "change_show":
+      return { ...state, show: action.payload };
+    default:
+      return state;
+  }
+};
+
 const IncomeExpense = ({
   title,
   close,
@@ -121,31 +140,38 @@ const IncomeExpense = ({
   const parent = edit ? "Edit" : title;
   const db = openDatabase("trackItDb");
 
-  // selected is true if income is selected, else expense is selected it is false,income is selected by defalut
-  const [selected, setSelected] = useState(true);
-
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [id, setID] = useState(0);
+  const [state, dispatch] = useReducer(reducer, {
+    // selected is true if income is selected, else expense is selected it is false,income is selected by defalut
+    selected: true,
+    description: "",
+    amount: "",
+    id: 0,
+    date: new Date(),
+    // for showing date
+    show: false,
+  });
 
   // date configs
   const dateFormat = "MMMM do, yyyy";
-  // const dateFormat = " yyyy-MM-dd";
-  // const [date, setDate] = useState(format(new Date(), dateFormat));
-  const [date, setDate] = useState(new Date());
-  const [show, setShow] = useState(false);
+
   const showDate = () => {
-    setShow(true);
+    // setShow(true);
+    dispatch({ type: "change_show", payload: true });
   };
 
   useEffect(() => {
     if (edit) {
-      if (heading === "Income") setSelected(true);
-      else setSelected(false);
-      setDescription(descFromEdit);
-      setAmount(`${balanceValue}`);
-      setDate(new Date(dateFromEdit));
-      setID(idNo);
+      if (heading === "Income")
+        dispatch({ type: "change_selected", payload: true });
+      else dispatch({ type: "change_selected", payload: false });
+      // setDescription(descFromEdit);
+      dispatch({ type: "change_description", payload: descFromEdit });
+      // setAmount(`${balanceValue}`);
+      dispatch({ type: "change_amount", payload: `${balanceValue}` });
+      // setDate(new Date(dateFromEdit));
+      dispatch({ type: "change_date", payload: new Date(dateFromEdit) });
+      // setID(idNo);
+      dispatch({ type: "change_id", payload: idNo });
     }
   }, []);
 
@@ -153,10 +179,12 @@ const IncomeExpense = ({
   const onChange = (event, selectedDate) => {
     try {
       let currentDate;
-      if (!selectedDate) currentDate = date;
+      if (!selectedDate) currentDate = state.date;
       else currentDate = selectedDate;
-      setShow(Platform.OS === "ios");
-      setDate(currentDate);
+      // setShow(Platform.OS === "ios");
+      dispatch({ type: "change_show", payload: Platform.OS === "ios" });
+      // setDate(currentDate);
+      dispatch({ type: "change_date", payload: currentDate });
     } catch (error) {
       console.log(error.message);
     }
@@ -169,20 +197,20 @@ const IncomeExpense = ({
 
   // add values to the table
   const addEntry = () => {
-    if (description === "" || amount === 0) {
+    if (state.description === "" || state.amount === 0) {
       Toast.show("Please fill in");
     } else {
-      const stringDate = date.toISOString();
+      const stringDate = state.date.toISOString();
       // if true updates entries
       if (edit) {
         // checks if income or expense is selected
-        if (selected)
+        if (state.selected)
           updateData(
             { db },
-            id,
-            description,
+            state.id,
+            state.description,
             stringDate,
-            parseInt(amount, 10),
+            parseInt(state.amount, 10),
             0
           )
             .then(() => Toast.show("Updated"))
@@ -194,11 +222,11 @@ const IncomeExpense = ({
         else
           updateData(
             { db },
-            id,
-            description,
+            state.id,
+            state.description,
             stringDate,
             0,
-            parseInt(amount, 10)
+            parseInt(state.amount, 10)
           )
             .then(() => Toast.show("Updated"))
             .catch(function (error) {
@@ -209,8 +237,14 @@ const IncomeExpense = ({
       } else {
         // checks if income or expense is selected
         // eslint-disable-next-line no-lonely-if
-        if (selected) {
-          addDetails({ db }, stringDate, description, parseInt(amount, 10), 0)
+        if (state.selected) {
+          addDetails(
+            { db },
+            stringDate,
+            state.description,
+            parseInt(state.amount, 10),
+            0
+          )
             .then(showToast)
             .catch(function (error) {
               console.log(
@@ -218,7 +252,13 @@ const IncomeExpense = ({
               );
             });
         } else {
-          addDetails({ db }, stringDate, description, 0, parseInt(amount, 10))
+          addDetails(
+            { db },
+            stringDate,
+            state.description,
+            0,
+            parseInt(state.amount, 10)
+          )
             .then(showToast)
             .catch(function (error) {
               console.log(
@@ -247,15 +287,17 @@ const IncomeExpense = ({
       <View style={styles.toggleParent}>
         <TouchableOpacity
           style={[
-            selected
+            state.selected
               ? styles.toggleButtonIncomeSelected
               : styles.toggleButtonIncome,
           ]}
-          onPress={() => setSelected(true)}
+          onPress={() => dispatch({ type: "change_selected", payload: true })}
         >
           <Text
             style={[
-              selected ? { color: colors.white } : { color: colors.lightBlack },
+              state.selected
+                ? { color: colors.white }
+                : { color: colors.lightBlack },
             ]}
           >
             Income
@@ -263,15 +305,17 @@ const IncomeExpense = ({
         </TouchableOpacity>
         <TouchableOpacity
           style={[
-            selected
+            state.selected
               ? styles.toggleButtonExpense
               : styles.toggleButtonExpenseSelected,
           ]}
-          onPress={() => setSelected(false)}
+          onPress={() => dispatch({ type: "change_selected", payload: false })}
         >
           <Text
             style={[
-              selected ? { color: colors.lightBlack } : { color: colors.white },
+              state.selected
+                ? { color: colors.lightBlack }
+                : { color: colors.white },
             ]}
           >
             Expense
@@ -285,8 +329,10 @@ const IncomeExpense = ({
         placeholderTextColor="gray"
         keyboardType="numeric"
         style={styles.input}
-        onChangeText={(text) => setAmount(text)}
-        value={amount}
+        onChangeText={(text) =>
+          dispatch({ type: "change_amount", payload: text })
+        }
+        value={state.amount}
         returnKeyType="next"
       />
 
@@ -295,8 +341,10 @@ const IncomeExpense = ({
         placeholder="Description"
         placeholderTextColor="gray"
         style={styles.input}
-        onChangeText={(text) => setDescription(text)}
-        value={description}
+        onChangeText={(text) =>
+          dispatch({ type: "change_description", payload: text })
+        }
+        value={state.description}
         returnKeyType="done"
       />
 
@@ -306,8 +354,10 @@ const IncomeExpense = ({
           placeholder="Date"
           placeholderTextColor="gray"
           style={styles.inputDate}
-          onChangeText={(text) => setDate(text)}
-          value={format(date, dateFormat)}
+          onChangeText={(text) =>
+            dispatch({ type: "change_date", payload: text })
+          }
+          value={format(state.date, dateFormat)}
           editable={false}
         />
         <TouchableOpacity onPress={showDate} style={styles.dateIcon}>
@@ -318,10 +368,10 @@ const IncomeExpense = ({
           />
         </TouchableOpacity>
 
-        {show && (
+        {state.show && (
           <DateTimePicker
             testID="dateTimePicker"
-            value={date}
+            value={state.date}
             mode="date"
             is24Hour
             display="default"
