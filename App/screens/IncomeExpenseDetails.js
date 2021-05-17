@@ -139,7 +139,6 @@ const IncomeExpenseDetails = ({ close }) => {
           timing: { duration: 280 },
           spring: { speed: 50, bounciness: 0 },
         }}
-        onClosed={() => close()}
       >
         <IncomeExpense
           title="Edit"

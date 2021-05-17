@@ -233,7 +233,10 @@ const IncomeExpense = ({ title, close }) => {
                 `There has been a problem occurred:  ${error.message}`
               );
             });
-      } else {
+      }
+
+      // adding new data
+      else {
         // checks if income or expense is selected
         // eslint-disable-next-line no-lonely-if
         if (state.selected) {
