@@ -197,7 +197,7 @@ const IncomeExpense = ({
 
   // add values to the table
   const addEntry = () => {
-    if (state.description === "" || state.amount === 0) {
+    if (state.description === "" || state.amount === "") {
       Toast.show("Please fill in");
     } else {
       const stringDate = state.date.toISOString();
@@ -213,7 +213,10 @@ const IncomeExpense = ({
             parseInt(state.amount, 10),
             0
           )
-            .then(() => Toast.show("Updated"))
+            .then(() => {
+              Toast.show("Updated");
+              close();
+            })
             .catch(function (error) {
               console.log(
                 `There has been a problem occurred:  ${error.message}`
@@ -228,7 +231,10 @@ const IncomeExpense = ({
             0,
             parseInt(state.amount, 10)
           )
-            .then(() => Toast.show("Updated"))
+            .then(() => {
+              Toast.show("Updated");
+              close();
+            })
             .catch(function (error) {
               console.log(
                 `There has been a problem occurred:  ${error.message}`
@@ -245,7 +251,10 @@ const IncomeExpense = ({
             parseInt(state.amount, 10),
             0
           )
-            .then(showToast)
+            .then(() => {
+              showToast();
+              close();
+            })
             .catch(function (error) {
               console.log(
                 `There has been a problem occurred:  ${error.message}`
@@ -259,7 +268,10 @@ const IncomeExpense = ({
             0,
             parseInt(state.amount, 10)
           )
-            .then(showToast)
+            .then(() => {
+              showToast();
+              close();
+            })
             .catch(function (error) {
               console.log(
                 `There has been a problem occurred:  ${error.message}`
@@ -383,7 +395,9 @@ const IncomeExpense = ({
       {/* save button */}
       <TouchableOpacity
         style={{ alignSelf: "center", marginVertical: 18 }}
-        onPress={addEntry}
+        onPress={() => {
+          addEntry();
+        }}
       >
         <Text
           style={{ color: colors.appPrimary, fontSize: 14, fontWeight: "bold" }}

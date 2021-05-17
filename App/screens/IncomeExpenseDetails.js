@@ -114,7 +114,10 @@ const IncomeExpenseDetails = ({ item, close }) => {
       {/* delete button */}
       <TouchableOpacity
         style={{ alignSelf: "center", marginVertical: 18 }}
-        onPress={() => deleteData()}
+        onPress={() => {
+          deleteData();
+          close();
+        }}
       >
         <Text
           style={{ color: colors.lightBlack, fontSize: 14, fontWeight: "bold" }}
@@ -123,7 +126,17 @@ const IncomeExpenseDetails = ({ item, close }) => {
         </Text>
       </TouchableOpacity>
 
-      <Modalize ref={modalizeRef} withHandle={false} disableScrollIfPossible>
+      <Modalize
+        ref={modalizeRef}
+        withHandle={false}
+        disableScrollIfPossible
+        onBackButtonPress={() => {}}
+        openAnimationConfig={{
+          timing: { duration: 280 },
+          spring: { speed: 50, bounciness: 0 },
+        }}
+        onClosed={() => close()}
+      >
         <IncomeExpense
           title="Edit"
           close={() => {

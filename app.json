@@ -4,9 +4,9 @@
     "slug": "TrackIt",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./App/assets/images/icon.png",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./App/assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

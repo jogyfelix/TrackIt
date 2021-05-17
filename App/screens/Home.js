@@ -4,9 +4,9 @@ import {
   StyleSheet,
   Text,
   StatusBar,
-  Dimensions,
   SectionList,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { Modalize } from "react-native-modalize";
 import { openDatabase } from "expo-sqlite";
@@ -18,11 +18,9 @@ import IncomeExpense from "./IncomeExpense";
 import IncomeExpenseDetails from "./IncomeExpenseDetails";
 import { getDetails, getPrimaryDetails } from "../data/dbFiles";
 
-const screenHeight = Dimensions.get("window").height;
-
 const styles = StyleSheet.create({
   parent: {
-    height: screenHeight,
+    height: "100%",
     flex: 1,
   },
   listParent: {
@@ -167,7 +165,7 @@ const Home = () => {
               fontWeight: "bold",
             }}
           >
-            {`$${state.balance}`}
+            {`$${state.balance ? state.balance : 0}`}
           </Text>
         </View>
 
@@ -180,10 +178,10 @@ const Home = () => {
           <Text
             style={{ color: colors.green, fontSize: 24, fontWeight: "bold" }}
           >
-            {`$${state.income}`}
+            {`$${state.income ? state.income : 0}`}
           </Text>
           <Text style={{ color: colors.red, fontSize: 24, fontWeight: "bold" }}>
-            {`$${state.expense}`}
+            {`$${state.expense ? state.expense : 0}`}
           </Text>
           <Text style={{ color: "gray" }}>Expense</Text>
         </View>
@@ -193,8 +191,32 @@ const Home = () => {
       <View style={styles.listParent}>
         {/* list */}
         <SectionList
-          style={{ marginTop: 16, marginBottom: 90 }}
+          style={{ marginTop: 16, marginBottom: 16 }}
           sections={state.sectionData}
+          ListFooterComponent={<View style={{ height: 52 }} />}
+          ListEmptyComponent={() => {
+            return (
+              <View
+                style={{
+                  alignSelf: "center",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+
+                  marginVertical: 120,
+                }}
+              >
+                <Image
+                  style={{ height: 80, width: 80 }}
+                  source={require("../assets/images/empty_icon.png")}
+                />
+                <Text style={{ color: colors.lightBlack }}>
+                  Ouhh..nothing to Track.
+                </Text>
+                <Text style={{ color: "gray" }}>Go..add something.</Text>
+              </View>
+            );
+          }}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={{ marginVertical: 4 }}
@@ -268,6 +290,7 @@ const Home = () => {
         </View>
       </View>
 
+      {/* modal for opening add income/expense page */}
       <Modalize ref={modalizeRef} withHandle={false} disableScrollIfPossible>
         <IncomeExpense
           title="Add"
@@ -278,10 +301,15 @@ const Home = () => {
         />
       </Modalize>
 
+      {/* modal for opening  income/expense details page */}
       <Modalize
         ref={modalizeRefDetials}
         withHandle={false}
         disableScrollIfPossible
+        closeAnimationConfig={{
+          timing: { duration: 280 },
+          spring: { speed: 50, bounciness: 0 },
+        }}
       >
         <IncomeExpenseDetails
           item={state.clickedItem}
