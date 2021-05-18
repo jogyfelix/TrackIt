@@ -145,6 +145,7 @@ const IncomeExpense = ({ title, close }) => {
       dispatch({ type: "change_date", payload: new Date(clickedItem.Date) });
       dispatch({ type: "change_id", payload: clickedItem.id });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // getting date picked from date picker

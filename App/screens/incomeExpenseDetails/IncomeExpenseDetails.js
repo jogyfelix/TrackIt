@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-simple-toast";
+import { format } from "date-fns";
 import { openDatabase } from "expo-sqlite";
 import { Modalize } from "react-native-modalize";
 import { removeData } from "../../data/dbFiles";
@@ -58,6 +59,9 @@ const styles = StyleSheet.create({
 const IncomeExpenseDetails = ({ close }) => {
   const db = openDatabase("trackItDb");
 
+  // date format
+  const dateFormat = "MMMM do, yyyy";
+
   const { clickedItem } = useContext(SelectedItemContext);
 
   const heading = clickedItem.Income > 0 ? "Income" : "Expense";
@@ -101,7 +105,7 @@ const IncomeExpenseDetails = ({ close }) => {
       <Text style={styles.description}>{description}</Text>
 
       {/* date */}
-      <Text style={styles.date}>{date}</Text>
+      <Text style={styles.date}>{format(Date.parse(date), dateFormat)}</Text>
 
       {/* edit button */}
       <TouchableOpacity
