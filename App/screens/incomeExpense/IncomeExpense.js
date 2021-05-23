@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import React, { useReducer, useEffect, useContext } from "react";
 import {
   View,
@@ -17,6 +18,255 @@ import colors from "../../constants/colors";
 import { addDetails, updateData } from "../../data/dbFiles";
 import { SelectedItemContext } from "../../util/SelectedItemContextProvider";
 import { reducer } from "./reducer";
+import actionTypes from "../../constants/actionTypes";
+
+const IncomeExpense = ({ title, close }) => {
+  const { clickedItem } = useContext(SelectedItemContext);
+
+  const heading = clickedItem.Income > 0 ? "Income" : "Expense";
+
+  const db = openDatabase("trackItDb");
+
+  const [state, dispatch] = useReducer(reducer, {
+    // selected is true if income is selected
+    selected: true,
+    description: "",
+    amount: "",
+    id: 0,
+    date: new Date(),
+    show: false,
+  });
+
+  const dateFormat = "MMMM do, yyyy";
+
+  const showDate = () => {
+    dispatch({ type: actionTypes.changeShow, payload: true });
+  };
+
+  useEffect(() => {
+    if (title === "Edit") {
+      if (heading === "Income") {
+        dispatch({
+          type: actionTypes.changeAmount,
+          payload: `${clickedItem.Income}`,
+        });
+        dispatch({ type: actionTypes.changeSelected, payload: true });
+      } else {
+        dispatch({
+          type: actionTypes.changeAmount,
+          payload: `${clickedItem.Expense}`,
+        });
+        dispatch({ type: actionTypes.changeSelected, payload: false });
+      }
+      dispatch({
+        type: actionTypes.changeDescription,
+        payload: clickedItem.Description,
+      });
+      dispatch({
+        type: actionTypes.changeDate,
+        payload: new Date(clickedItem.Date),
+      });
+      dispatch({ type: actionTypes.changeId, payload: clickedItem.id });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onChange = (event, selectedDate) => {
+    try {
+      let currentDate;
+      if (!selectedDate) currentDate = state.date;
+      else currentDate = selectedDate;
+      dispatch({
+        type: actionTypes.changeShow,
+        payload: Platform.OS === "ios",
+      });
+      dispatch({ type: actionTypes.changeDate, payload: currentDate });
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const addEntry = async () => {
+    try {
+      if (state.description === "" || state.amount === "") {
+        Toast.show("Please fill in");
+        // eslint-disable-next-line no-restricted-globals
+      } else if (isNaN(state.amount)) {
+        dispatch({ type: actionTypes.changeAmount, payload: "" });
+        Toast.show("Please enter a valid amount");
+      } else {
+        const stringDate = state.date.toISOString();
+
+        if (title === "Edit") {
+          if (state.selected) {
+            const acknowledgement = await updateData(
+              { db },
+              state.id,
+              state.description,
+              stringDate,
+              parseInt(state.amount, 10),
+              0
+            );
+            Toast.show(acknowledgement);
+            close();
+          } else {
+            const acknowledgement = await updateData(
+              { db },
+              state.id,
+              state.description,
+              stringDate,
+              0,
+              parseInt(state.amount, 10)
+            );
+            Toast.show(acknowledgement);
+            close();
+          }
+        } else {
+          // eslint-disable-next-line no-lonely-if
+          if (state.selected) {
+            const acknowledgement = await addDetails(
+              { db },
+              stringDate,
+              state.description,
+              parseInt(state.amount, 10),
+              0
+            );
+            Toast.show(acknowledgement);
+            close();
+          } else {
+            const acknowledgement = await addDetails(
+              { db },
+              stringDate,
+              state.description,
+              0,
+              parseInt(state.amount, 10)
+            );
+            Toast.show(acknowledgement);
+            close();
+          }
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  return (
+    <View style={styles.parent}>
+      <Text style={styles.headerText}>{`${title} Income/Expense`}</Text>
+
+      <SafeAreaView style={styles.closeButton}>
+        <TouchableOpacity onPress={() => close()}>
+          <AntDesign name="close" size={24} color="gray" />
+        </TouchableOpacity>
+      </SafeAreaView>
+
+      <View style={styles.toggleParent}>
+        <TouchableOpacity
+          style={[
+            state.selected
+              ? styles.toggleButtonIncomeSelected
+              : styles.toggleButtonIncome,
+          ]}
+          onPress={() => dispatch({ type: "change_selected", payload: true })}
+        >
+          <Text
+            style={[
+              state.selected
+                ? { color: colors.white }
+                : { color: colors.lightBlack },
+            ]}
+          >
+            Income
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            state.selected
+              ? styles.toggleButtonExpense
+              : styles.toggleButtonExpenseSelected,
+          ]}
+          onPress={() =>
+            dispatch({ type: actionTypes.changeSelected, payload: false })
+          }
+        >
+          <Text
+            style={[
+              state.selected
+                ? { color: colors.lightBlack }
+                : { color: colors.white },
+            ]}
+          >
+            Expense
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <TextInput
+        placeholder="Amount"
+        placeholderTextColor="gray"
+        keyboardType="numeric"
+        style={styles.input}
+        onChangeText={(text) => {
+          dispatch({ type: actionTypes.changeAmount, payload: text });
+        }}
+        value={state.amount}
+        returnKeyType="next"
+      />
+
+      <TextInput
+        placeholder="Description"
+        placeholderTextColor="gray"
+        style={styles.input}
+        onChangeText={(text) =>
+          dispatch({ type: actionTypes.changeDescription, payload: text })
+        }
+        value={state.description}
+        returnKeyType="done"
+      />
+
+      <TouchableOpacity style={styles.dateParent} onPress={showDate}>
+        <TextInput
+          placeholder="Date"
+          placeholderTextColor="gray"
+          style={styles.inputDate}
+          onChangeText={(text) =>
+            dispatch({ type: actionTypes.changeDate, payload: text })
+          }
+          value={format(state.date, dateFormat)}
+          editable={false}
+        />
+        <View style={styles.dateIcon}>
+          <MaterialIcons
+            name="date-range"
+            size={24}
+            color={colors.lightBlack}
+          />
+        </View>
+
+        {state.show && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={state.date}
+            mode="date"
+            is24Hour
+            display="default"
+            onChange={onChange}
+          />
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.saveTouch}
+        onPress={() => {
+          addEntry();
+        }}
+      >
+        <Text style={styles.saveText}>Save</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   parent: { flex: 1, height: "100%" },
@@ -26,7 +276,8 @@ const styles = StyleSheet.create({
     color: colors.lightBlack,
     fontSize: 18,
   },
-
+  saveTouch: { alignSelf: "center", marginVertical: 18 },
+  saveText: { color: colors.appPrimary, fontSize: 14, fontWeight: "bold" },
   closeButton: {
     alignSelf: "flex-end",
     right: 16,
@@ -85,297 +336,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   inputDate: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    marginTop: 16,
-    marginHorizontal: 16,
-    height: 42,
     padding: 10,
     fontSize: 16,
-    borderRadius: 8,
     flex: 1,
   },
   dateParent: {
+    borderRadius: 8,
+    marginTop: 16,
+    height: 42,
+    borderWidth: 2,
+    marginHorizontal: 16,
+    borderColor: colors.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  dateIcon: { marginRight: 16, paddingTop: 10 },
+  dateIcon: { marginRight: 8 },
 });
-
-const IncomeExpense = ({ title, close }) => {
-  const { clickedItem } = useContext(SelectedItemContext);
-
-  // checks the type of entry to be updated(income/expense)
-  const heading = clickedItem.Income > 0 ? "Income" : "Expense";
-
-  const db = openDatabase("trackItDb");
-
-  const [state, dispatch] = useReducer(reducer, {
-    // selected is true if income is selected, else expense is selected it is false,income is selected by defalut
-    selected: true,
-    description: "",
-    amount: "",
-    id: 0,
-    date: new Date(),
-    // for showing date
-    show: false,
-  });
-
-  // date format
-  const dateFormat = "MMMM do, yyyy";
-
-  const showDate = () => {
-    dispatch({ type: "change_show", payload: true });
-  };
-
-  useEffect(() => {
-    if (title === "Edit") {
-      if (heading === "Income") {
-        dispatch({ type: "change_amount", payload: `${clickedItem.Income}` });
-        dispatch({ type: "change_selected", payload: true });
-      } else {
-        dispatch({ type: "change_amount", payload: `${clickedItem.Expense}` });
-        dispatch({ type: "change_selected", payload: false });
-      }
-      dispatch({
-        type: "change_description",
-        payload: clickedItem.Description,
-      });
-      dispatch({ type: "change_date", payload: new Date(clickedItem.Date) });
-      dispatch({ type: "change_id", payload: clickedItem.id });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // getting date picked from date picker
-  const onChange = (event, selectedDate) => {
-    try {
-      let currentDate;
-      if (!selectedDate) currentDate = state.date;
-      else currentDate = selectedDate;
-      dispatch({ type: "change_show", payload: Platform.OS === "ios" });
-      dispatch({ type: "change_date", payload: currentDate });
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
-  // add values to the table
-  const addEntry = () => {
-    if (state.description === "" || state.amount === "") {
-      Toast.show("Please fill in");
-    } else {
-      const stringDate = state.date.toISOString();
-      // if true updates entries
-      if (title === "Edit") {
-        // checks if income or expense is selected
-        if (state.selected)
-          updateData(
-            { db },
-            state.id,
-            state.description,
-            stringDate,
-            parseInt(state.amount, 10),
-            0
-          )
-            .then(() => {
-              Toast.show("Updated");
-              close();
-            })
-            .catch(function (error) {
-              console.log(
-                `There has been a problem occurred:  ${error.message}`
-              );
-            });
-        else
-          updateData(
-            { db },
-            state.id,
-            state.description,
-            stringDate,
-            0,
-            parseInt(state.amount, 10)
-          )
-            .then(() => {
-              Toast.show("Updated");
-              close();
-            })
-            .catch(function (error) {
-              console.log(
-                `There has been a problem occurred:  ${error.message}`
-              );
-            });
-      }
-
-      // adding new data
-      else {
-        // checks if income or expense is selected
-        // eslint-disable-next-line no-lonely-if
-        if (state.selected) {
-          addDetails(
-            { db },
-            stringDate,
-            state.description,
-            parseInt(state.amount, 10),
-            0
-          )
-            .then(() => {
-              Toast.show("Saved");
-              close();
-            })
-            .catch(function (error) {
-              console.log(
-                `There has been a problem occurred:  ${error.message}`
-              );
-            });
-        } else {
-          addDetails(
-            { db },
-            stringDate,
-            state.description,
-            0,
-            parseInt(state.amount, 10)
-          )
-            .then(() => {
-              Toast.show("Saved");
-              close();
-            })
-            .catch(function (error) {
-              console.log(
-                `There has been a problem occurred:  ${error.message}`
-              );
-            });
-        }
-      }
-    }
-  };
-
-  return (
-    //   main parent view
-    <View style={styles.parent}>
-      {/* page header */}
-      <Text style={styles.headerText}>{`${title} Income/Expense`}</Text>
-
-      {/* close button */}
-      <SafeAreaView style={styles.closeButton}>
-        <TouchableOpacity onPress={() => close()}>
-          <AntDesign name="close" size={24} color="gray" />
-        </TouchableOpacity>
-      </SafeAreaView>
-
-      {/* income expense toggle button */}
-      <View style={styles.toggleParent}>
-        <TouchableOpacity
-          style={[
-            state.selected
-              ? styles.toggleButtonIncomeSelected
-              : styles.toggleButtonIncome,
-          ]}
-          onPress={() => dispatch({ type: "change_selected", payload: true })}
-        >
-          <Text
-            style={[
-              state.selected
-                ? { color: colors.white }
-                : { color: colors.lightBlack },
-            ]}
-          >
-            Income
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            state.selected
-              ? styles.toggleButtonExpense
-              : styles.toggleButtonExpenseSelected,
-          ]}
-          onPress={() => dispatch({ type: "change_selected", payload: false })}
-        >
-          <Text
-            style={[
-              state.selected
-                ? { color: colors.lightBlack }
-                : { color: colors.white },
-            ]}
-          >
-            Expense
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* amount text input */}
-      <TextInput
-        placeholder="Amount"
-        placeholderTextColor="gray"
-        keyboardType="numeric"
-        style={styles.input}
-        onChangeText={(text) =>
-          dispatch({ type: "change_amount", payload: text })
-        }
-        value={state.amount}
-        returnKeyType="next"
-      />
-
-      {/* description text input */}
-      <TextInput
-        placeholder="Description"
-        placeholderTextColor="gray"
-        style={styles.input}
-        onChangeText={(text) =>
-          dispatch({ type: "change_description", payload: text })
-        }
-        value={state.description}
-        returnKeyType="done"
-      />
-
-      {/* date text input */}
-      <View style={styles.dateParent}>
-        <TextInput
-          placeholder="Date"
-          placeholderTextColor="gray"
-          style={styles.inputDate}
-          onChangeText={(text) =>
-            dispatch({ type: "change_date", payload: text })
-          }
-          value={format(state.date, dateFormat)}
-          editable={false}
-        />
-        <TouchableOpacity onPress={showDate} style={styles.dateIcon}>
-          <MaterialIcons
-            name="date-range"
-            size={24}
-            color={colors.lightBlack}
-          />
-        </TouchableOpacity>
-
-        {state.show && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={state.date}
-            mode="date"
-            is24Hour
-            display="default"
-            onChange={onChange}
-          />
-        )}
-      </View>
-
-      {/* save button */}
-      <TouchableOpacity
-        style={{ alignSelf: "center", marginVertical: 18 }}
-        onPress={() => {
-          addEntry();
-        }}
-      >
-        <Text
-          style={{ color: colors.appPrimary, fontSize: 14, fontWeight: "bold" }}
-        >
-          Save
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
 
 export default IncomeExpense;

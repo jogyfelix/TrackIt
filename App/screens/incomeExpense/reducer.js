@@ -1,17 +1,19 @@
+import actionTypes from "../../constants/actionTypes";
+
 // reducer function
 const reducer = (state, action) => {
   switch (action.type) {
-    case "change_selected":
+    case actionTypes.changeSelected:
       return { ...state, selected: action.payload };
-    case "change_description":
+    case actionTypes.changeDescription:
       return { ...state, description: action.payload };
-    case "change_amount":
+    case actionTypes.changeAmount:
       return { ...state, amount: action.payload };
-    case "change_id":
+    case actionTypes.changeId:
       return { ...state, id: action.payload };
-    case "change_date":
+    case actionTypes.changeDate:
       return { ...state, date: action.payload };
-    case "change_show":
+    case actionTypes.changeShow:
       return { ...state, show: action.payload };
     default:
       return state;

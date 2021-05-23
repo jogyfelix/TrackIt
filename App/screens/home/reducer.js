@@ -1,13 +1,15 @@
+import actionTypes from "../../constants/actionTypes";
+
 const reducer = (state, action) => {
   switch (action.type) {
-    case "change_balance":
+    case actionTypes.changeBalance:
       return { ...state, balance: action.payload };
-    case "change_income":
+    case actionTypes.changeIncome:
       return { ...state, income: action.payload };
-    case "change_expense":
+    case actionTypes.changeExpense:
       return { ...state, expense: action.payload };
     // section list data
-    case "change_sectionData":
+    case actionTypes.changeSectionData:
       return { ...state, sectionData: action.payload };
     default:
       return state;

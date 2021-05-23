@@ -1,10 +1,4 @@
-export const addDetails = async (
-  { db },
-  date,
-  description,
-  income,
-  expense
-) => {
+export const addDetails = ({ db }, date, description, income, expense) => {
   const promise = new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -24,7 +18,7 @@ export const addDetails = async (
   return promise;
 };
 
-export const getDetails = async ({ db }) => {
+export const getDetails = ({ db }) => {
   const promise = new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -40,7 +34,7 @@ export const getDetails = async ({ db }) => {
   return promise;
 };
 
-export const getPrimaryDetails = async ({ db }) => {
+export const getPrimaryDetails = ({ db }) => {
   const promise = new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -56,7 +50,7 @@ export const getPrimaryDetails = async ({ db }) => {
   return promise;
 };
 
-export const removeData = async ({ db }, id, desc) => {
+export const removeData = ({ db }, id, desc) => {
   const promise = new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -72,14 +66,14 @@ export const removeData = async ({ db }, id, desc) => {
   return promise;
 };
 
-export const updateData = async ({ db }, id, desc, date, income, expense) => {
+export const updateData = ({ db }, id, desc, date, income, expense) => {
   const promise = new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
         "update TrackItTable set Date=?,Description=?,Expense=?,Income=? where id = ?",
         [date, desc, expense, income, id],
         () => {
-          resolve("Removed");
+          resolve("Updated");
         },
         (_, error) => reject(error)
       );
