@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import React, { useRef, useContext } from "react";
 import {
   StyleSheet,

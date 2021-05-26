@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import React, { useReducer, useEffect, useContext } from "react";
 import {
   View,
@@ -40,35 +39,34 @@ const IncomeExpense = ({ title, close }) => {
   const dateFormat = "MMMM do, yyyy";
 
   const showDate = () => {
-    dispatch({ type: actionTypes.changeShow, payload: true });
+    dispatch({ type: actionTypes.CHANGE_SHOW, payload: true });
   };
 
   useEffect(() => {
     if (title === "Edit") {
       if (heading === "Income") {
         dispatch({
-          type: actionTypes.changeAmount,
+          type: actionTypes.CHANGE_AMOUNT,
           payload: `${clickedItem.Income}`,
         });
-        dispatch({ type: actionTypes.changeSelected, payload: true });
+        dispatch({ type: actionTypes.CHANGE_SELECTED, payload: true });
       } else {
         dispatch({
-          type: actionTypes.changeAmount,
+          type: actionTypes.CHANGE_AMOUNT,
           payload: `${clickedItem.Expense}`,
         });
-        dispatch({ type: actionTypes.changeSelected, payload: false });
+        dispatch({ type: actionTypes.CHANGE_SELECTED, payload: false });
       }
       dispatch({
-        type: actionTypes.changeDescription,
+        type: actionTypes.CHANGE_DESCRIPTION,
         payload: clickedItem.Description,
       });
       dispatch({
-        type: actionTypes.changeDate,
+        type: actionTypes.CHANGE_DATE,
         payload: new Date(clickedItem.Date),
       });
-      dispatch({ type: actionTypes.changeId, payload: clickedItem.id });
+      dispatch({ type: actionTypes.CHANGE_ID, payload: clickedItem.id });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onChange = (event, selectedDate) => {
@@ -77,10 +75,10 @@ const IncomeExpense = ({ title, close }) => {
       if (!selectedDate) currentDate = state.date;
       else currentDate = selectedDate;
       dispatch({
-        type: actionTypes.changeShow,
+        type: actionTypes.CHANGE_SHOW,
         payload: Platform.OS === "ios",
       });
-      dispatch({ type: actionTypes.changeDate, payload: currentDate });
+      dispatch({ type: actionTypes.CHANGE_DATE, payload: currentDate });
     } catch (error) {
       console.log(error.message);
     }
@@ -90,9 +88,8 @@ const IncomeExpense = ({ title, close }) => {
     try {
       if (state.description === "" || state.amount === "") {
         Toast.show("Please fill in");
-        // eslint-disable-next-line no-restricted-globals
       } else if (isNaN(state.amount)) {
-        dispatch({ type: actionTypes.changeAmount, payload: "" });
+        dispatch({ type: actionTypes.CHANGE_AMOUNT, payload: "" });
         Toast.show("Please enter a valid amount");
       } else {
         const stringDate = state.date.toISOString();
@@ -122,7 +119,6 @@ const IncomeExpense = ({ title, close }) => {
             close();
           }
         } else {
-          // eslint-disable-next-line no-lonely-if
           if (state.selected) {
             const acknowledgement = await addDetails(
               { db },
@@ -168,7 +164,9 @@ const IncomeExpense = ({ title, close }) => {
               ? styles.toggleButtonIncomeSelected
               : styles.toggleButtonIncome,
           ]}
-          onPress={() => dispatch({ type: "change_selected", payload: true })}
+          onPress={() =>
+            dispatch({ type: actionTypes.CHANGE_SELECTED, payload: true })
+          }
         >
           <Text
             style={[
@@ -187,7 +185,7 @@ const IncomeExpense = ({ title, close }) => {
               : styles.toggleButtonExpenseSelected,
           ]}
           onPress={() =>
-            dispatch({ type: actionTypes.changeSelected, payload: false })
+            dispatch({ type: actionTypes.CHANGE_SELECTED, payload: false })
           }
         >
           <Text
@@ -208,7 +206,7 @@ const IncomeExpense = ({ title, close }) => {
         keyboardType="numeric"
         style={styles.input}
         onChangeText={(text) => {
-          dispatch({ type: actionTypes.changeAmount, payload: text });
+          dispatch({ type: actionTypes.CHANGE_AMOUNT, payload: text });
         }}
         value={state.amount}
         returnKeyType="next"
@@ -219,7 +217,7 @@ const IncomeExpense = ({ title, close }) => {
         placeholderTextColor="gray"
         style={styles.input}
         onChangeText={(text) =>
-          dispatch({ type: actionTypes.changeDescription, payload: text })
+          dispatch({ type: actionTypes.CHANGE_DESCRIPTION, payload: text })
         }
         value={state.description}
         returnKeyType="done"
@@ -231,7 +229,7 @@ const IncomeExpense = ({ title, close }) => {
           placeholderTextColor="gray"
           style={styles.inputDate}
           onChangeText={(text) =>
-            dispatch({ type: actionTypes.changeDate, payload: text })
+            dispatch({ type: actionTypes.CHANGE_DATE, payload: text })
           }
           value={format(state.date, dateFormat)}
           editable={false}

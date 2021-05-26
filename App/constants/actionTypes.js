@@ -1,15 +1,15 @@
 export default {
   // home
-  changeBalance: "CHANGE_BALANCE",
-  changeIncome: "CHANGE_INCOME",
-  changeExpense: "CHANGE_EXPENSE",
-  changeSectionData: "CHANGE_SECTION_DATA",
+  CHANGE_BALANCE: "CHANGE_BALANCE",
+  CHANGE_INCOME: "CHANGE_INCOME",
+  CHANGE_EXPENSE: "CHANGE_EXPENSE",
+  CHANGE_SECTION_DATA: "CHANGE_SECTION_DATA",
 
   // income expense
-  changeSelected: "CHANGE_SELECTED",
-  changeDescription: "CHANGE_DESCRIPTION",
-  changeAmount: "CHANGE_AMOUNT",
-  changeId: "CHANGE_ID",
-  changeDate: "CHANGE_DATE",
-  changeShow: "CHANGE_SHOW",
+  CHANGE_SELECTED: "CHANGE_SELECTED",
+  CHANGE_DESCRIPTION: "CHANGE_DESCRIPTION",
+  CHANGE_AMOUNT: "CHANGE_AMOUNT",
+  CHANGE_ID: "CHANGE_ID",
+  CHANGE_DATE: "CHANGE_DATE",
+  CHANGE_SHOW: "CHANGE_SHOW",
 };

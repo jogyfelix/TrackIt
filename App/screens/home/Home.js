@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import React, { useRef, useEffect, useReducer, useContext } from "react";
 import {
   View,
@@ -55,7 +54,7 @@ const Home = () => {
         };
       })
       .value();
-    dispatch({ type: actionTypes.changeSectionData, payload: groups });
+    dispatch({ type: actionTypes.CHANGE_SECTION_DATA, payload: groups });
   };
 
   const getData = async () => {
@@ -65,15 +64,15 @@ const Home = () => {
 
       const getDisplayData = await getPrimaryDetails({ db });
       dispatch({
-        type: actionTypes.changeBalance,
+        type: actionTypes.CHANGE_BALANCE,
         payload: getDisplayData[0].Balance,
       });
       dispatch({
-        type: actionTypes.changeIncome,
+        type: actionTypes.CHANGE_INCOME,
         payload: getDisplayData[0].Income,
       });
       dispatch({
-        type: actionTypes.changeExpense,
+        type: actionTypes.CHANGE_EXPENSE,
         payload: getDisplayData[0].Expense,
       });
     } catch (err) {
@@ -83,7 +82,6 @@ const Home = () => {
 
   useEffect(() => {
     getData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const modalizeRef = useRef(null);
